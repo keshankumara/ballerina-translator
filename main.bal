@@ -45,7 +45,7 @@ service / on new http:Listener(8080) {
         // Headers for Gemini API
         map<string> headers = {
             "Content-Type": "application/json",
-            "X-goog-api-key": "AIzaSyC9Lf08b8OH1DTWLKrtlY8VtUrpmGUP9Ng"
+            "X-goog-api-key": "API_key insert here"
         };
 
         // Call Gemini API
