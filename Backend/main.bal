@@ -1,6 +1,9 @@
 import ballerina/http;
 import ballerina/log;
 
+// Configurable API key
+configurable string API_key = ?;
+
 
 // Gemini API configuration
 final http:Client geminiClient = check new ("https://generativelanguage.googleapis.com", {
@@ -46,7 +49,7 @@ service / on new http:Listener(8080) {
         // Headers for Gemini API
         map<string> headers = {
             "Content-Type": "application/json",
-            "X-goog-api-key": "API_key insert here"
+            "X-goog-api-key": API_key
         };
 
         // Call Gemini API
