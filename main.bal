@@ -1,6 +1,7 @@
 import ballerina/http;
 import ballerina/log;
 
+
 // Gemini API configuration
 final http:Client geminiClient = check new ("https://generativelanguage.googleapis.com", {
     timeout: 30
