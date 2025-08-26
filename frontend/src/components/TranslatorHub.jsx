@@ -11,6 +11,59 @@ const TranslatorHub = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Function to extract clean translations from the response
+  const extractTranslations = (responseText) => {
+    // Split by lines and filter out explanations
+    const lines = responseText.split("\n");
+    const translations = [];
+
+    for (let line of lines) {
+      // Look for lines that contain Sinhala/Tamil characters or are in bold format
+      if (line.includes("**") && line.includes("**")) {
+        // Extract text between ** markers
+        const match = line.match(/\*\*(.*?)\*\*/);
+        if (match && match[1]) {
+          translations.push(match[1].trim());
+        }
+      } else if (line.includes("(") && line.includes(")")) {
+        // Extract pronunciation guides or simple translations
+        const beforeParens = line.split("(")[0].trim();
+        if (
+          beforeParens &&
+          beforeParens.length > 0 &&
+          !beforeParens.includes("*") &&
+          !beforeParens.includes("Here") &&
+          !beforeParens.includes("The most")
+        ) {
+          translations.push(beforeParens);
+        }
+      }
+    }
+
+    // If no structured translations found, try to find direct translations
+    if (translations.length === 0) {
+      for (let line of lines) {
+        line = line.trim();
+        // Look for lines that might contain direct translations
+        if (
+          line &&
+          !line.toLowerCase().includes("translation") &&
+          !line.toLowerCase().includes("here") &&
+          !line.toLowerCase().includes("means") &&
+          !line.toLowerCase().includes("formal") &&
+          !line.toLowerCase().includes("use") &&
+          !line.includes("*") &&
+          line.length > 2 &&
+          line.length < 100
+        ) {
+          translations.push(line);
+        }
+      }
+    }
+
+    return translations.length > 0 ? translations : [responseText.trim()];
+  };
+
   // Handle form submission to call the backend API
   const handleTranslate = async () => {
     setLoading(true);
@@ -29,7 +82,10 @@ const TranslatorHub = () => {
       });
 
       console.log("Response received:", response.data);
-      setOutputText(response.data.output);
+
+      // Extract clean translations from the response
+      const cleanTranslations = extractTranslations(response.data.output);
+      setOutputText(cleanTranslations);
     } catch (err) {
       console.error("Error details:", err);
       if (err.response) {
@@ -64,32 +120,35 @@ const TranslatorHub = () => {
         rows="4"
         cols="50"
       ></textarea>
-      <br />
 
       {/* Language selection */}
-      <label htmlFor="sourceLang">Source Language: </label>
-      <select
-        id="sourceLang"
-        value={sourceLang}
-        onChange={(e) => setSourceLang(e.target.value)}
-      >
-        <option value="en">English</option>
-        <option value="si">Sinhala</option>
-        <option value="ta">Tamil</option>
-      </select>
-      <br />
+      <div className="language-selection">
+        <div className="language-group">
+          <label htmlFor="sourceLang">Source Language:</label>
+          <select
+            id="sourceLang"
+            value={sourceLang}
+            onChange={(e) => setSourceLang(e.target.value)}
+          >
+            <option value="en">English</option>
+            <option value="si">Sinhala</option>
+            <option value="ta">Tamil</option>
+          </select>
+        </div>
 
-      <label htmlFor="targetLang">Target Language: </label>
-      <select
-        id="targetLang"
-        value={targetLang}
-        onChange={(e) => setTargetLang(e.target.value)}
-      >
-        <option value="en">English</option>
-        <option value="si">Sinhala</option>
-        <option value="ta">Tamil</option>
-      </select>
-      <br />
+        <div className="language-group">
+          <label htmlFor="targetLang">Target Language:</label>
+          <select
+            id="targetLang"
+            value={targetLang}
+            onChange={(e) => setTargetLang(e.target.value)}
+          >
+            <option value="en">English</option>
+            <option value="si">Sinhala</option>
+            <option value="ta">Tamil</option>
+          </select>
+        </div>
+      </div>
 
       {/* Translate button */}
       <button onClick={handleTranslate} disabled={loading}>
@@ -99,7 +158,17 @@ const TranslatorHub = () => {
       {/* Output */}
       <h3>Translated Text:</h3>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <p>{outputText}</p>
+      <div className="translation-output">
+        {Array.isArray(outputText) ? (
+          <ul>
+            {outputText.map((translation, index) => (
+              <li key={index}>{translation}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>{outputText}</p>
+        )}
+      </div>
     </div>
   );
 };
