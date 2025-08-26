@@ -1,13 +1,13 @@
-import React from "react";
-import "./App.css";
-import TranslatorHub from "./components/TranslatorHub";
+import './App.css'
+import TranslatorHub from './component/TranslatorHub'
 
 function App() {
+
   return (
-    <div className="App">
+    <div>
       <TranslatorHub />
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
