@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./TranslatorHub.css";
 
 const TranslatorHub = () => {
   // State variables to store text and results
@@ -15,20 +16,44 @@ const TranslatorHub = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post("http://localhost:8080/translate", {
+      console.log("Sending request with:", {
         text: inputText,
         sourceLang,
         target: targetLang,
       });
+
+      const response = await axios.post("/api/translate", {
+        text: inputText,
+        sourceLang,
+        target: targetLang,
+      });
+
+      console.log("Response received:", response.data);
       setOutputText(response.data.output);
     } catch (err) {
-      setError("Translation failed. Please try again.");
+      console.error("Error details:", err);
+      if (err.response) {
+        // Server responded with error status
+        setError(
+          `Server error: ${err.response.status} - ${
+            err.response.data || err.message
+          }`
+        );
+      } else if (err.request) {
+        // Request was made but no response received
+        setError(
+          "No response from server. Please check if the backend is running on http://localhost:8080"
+        );
+      } else {
+        // Something else happened
+        setError(`Request error: ${err.message}`);
+      }
     }
     setLoading(false);
   };
 
   return (
-    <div>
+    <div className="translator-container">
       <h1>Translator Hub</h1>
 
       {/* Input for text to be translated */}

@@ -1,0 +1,129 @@
+/* Container */
+.translator-container {
+  max-width: 90vw;
+  width: 100%;
+  margin: 5vw auto;
+  padding: 5vw 4vw;
+  background-color: #f9f9f9;
+  border-radius: 2vw;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Heading */
+.translator-container h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 2vw;
+  font-size: 2.5vw;
+}
+
+/* Textarea */
+.translator-container textarea {
+  width: 100%;
+  padding: 2vw;
+  border-radius: 1vw;
+  border: 1px solid #ccc;
+  resize: none;
+  font-size: 1.2vw;
+  margin-bottom: 2vw;
+  box-sizing: border-box;
+}
+
+/* Labels and Select */
+.translator-container label {
+  font-weight: bold;
+  margin-right: 1vw;
+  font-size: 1.1vw;
+}
+
+.translator-container select {
+  padding: 1vw 2vw;
+  margin-bottom: 2vw;
+  border-radius: 1vw;
+  border: 1px solid #ccc;
+  font-size: 1.1vw;
+}
+
+/* Button */
+.translator-container button {
+  display: block;
+  width: 100%;
+  padding: 2vw;
+  background-color: #01b26e;
+  color: white;
+  border: none;
+  border-radius: 1vw;
+  font-size: 1.3vw;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.translator-container button:hover {
+  background-color: #019f5a;
+}
+
+.translator-container button:disabled {
+  background-color: #a5d6c7;
+  cursor: not-allowed;
+}
+
+/* Translated text */
+.translator-container h3 {
+  margin-top: 3vw;
+  color: #333;
+  font-size: 1.5vw;
+}
+
+.translator-container p {
+  padding: 2vw;
+  background-color: #fff;
+  border-radius: 1vw;
+  border: 1px solid #ddd;
+  min-height: 5vw;
+  font-size: 1.2vw;
+  color: #555;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .translator-container {
+    max-width: 98vw;
+    padding: 4vw 2vw;
+    border-radius: 4vw;
+  }
+  .translator-container h1 {
+    font-size: 6vw;
+    margin-bottom: 4vw;
+  }
+  .translator-container textarea {
+    font-size: 4vw;
+    padding: 3vw;
+    border-radius: 3vw;
+    margin-bottom: 4vw;
+  }
+  .translator-container label,
+  .translator-container select {
+    font-size: 4vw;
+    margin-bottom: 3vw;
+  }
+  .translator-container select {
+    padding: 2vw 4vw;
+    border-radius: 3vw;
+  }
+  .translator-container button {
+    font-size: 4vw;
+    padding: 3vw;
+    border-radius: 3vw;
+  }
+  .translator-container h3 {
+    font-size: 4vw;
+    margin-top: 5vw;
+  }
+  .translator-container p {
+    font-size: 4vw;
+    padding: 3vw;
+    border-radius: 3vw;
+    min-height: 10vw;
+  }
+}
