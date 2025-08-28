@@ -2,43 +2,90 @@ import ballerina/http;
 import ballerina/log;
 
 configurable string API_key = ?;
+
+// Gemini base client
 final http:Client geminiClient = check new ("https://generativelanguage.googleapis.com", {
     timeout: 30
 });
 
-type TranslateRequest record {|
+// ----------------------------
+// Types
+// ----------------------------
+type TranslateRequest record {
     string text;
     string sourceLang;
     string target;
-|};
+};
 
-type TranslateResponse record {|
+type ImageRequest record {
+    string base64Image; // image as base64 string
+};
+
+type VoiceRequest record {
+    string base64Audio; // audio as base64 string
+    string sourceLang;
+    string target;
+};
+
+type TranslateResponse record {
     string output;
-|};
+};
 
+// ----------------------------
+// Service with CORS configuration
+// ----------------------------
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["*"],
+        allowCredentials: false,
+        allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+        allowMethods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+        maxAge: 84900
+    }
+}
 service / on new http:Listener(8080) {
 
-    // Handle CORS preflight
+    // ----------------------------
+    // CORS Preflight - Keep for additional safety
+    // ----------------------------
     resource function options translate(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        res.setHeader("Access-Control-Max-Age", "86400");
         check caller->respond(res);
     }
 
-    // POST translate
+    resource function options imageTranslate(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new;
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        res.setHeader("Access-Control-Max-Age", "86400");
+        check caller->respond(res);
+    }
+
+    resource function options voiceTranslate(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new;
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        res.setHeader("Access-Control-Max-Age", "86400");
+        check caller->respond(res);
+    }
+
+    // ----------------------------
+    // Text-to-Text Translation
+    // ----------------------------
     isolated resource function post translate(TranslateRequest req, http:Caller caller) returns error? {
         string prompt = string `Translate the following text from ${req.sourceLang} to ${req.target}. Return only the translation without any explanation: "${req.text}"`;
-
 
         json payload = {
             "contents": [
                 {
                     "parts": [
-                        {
-                            "text": prompt
-                        }
+                        {"text": prompt}
                     ]
                 }
             ]
@@ -55,11 +102,9 @@ service / on new http:Listener(8080) {
             headers
         );
 
-        log:printInfo("Gemini API response: " + rawResp.toJsonString());
+        log:printInfo("Gemini text API response: " + rawResp.toJsonString());
 
         string result = "";
-
-        // Extract the translation text safely
         if rawResp is map<json> && rawResp.hasKey("candidates") {
             json[] candidates = <json[]>rawResp["candidates"];
             if candidates.length() > 0 {
@@ -83,17 +128,130 @@ service / on new http:Listener(8080) {
             result = "[error: unexpected response] " + rawResp.toJsonString();
         }
 
-        // Respond as JSON with `output` field
         TranslateResponse respPayload = { output: result.trim() };
         http:Response res = new;
-        res.setJsonPayload(respPayload);
+        res.setJsonPayload(respPayload.toJson());
         res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
         check caller->respond(res);
     }
 
-    // Health check
+    // ----------------------------
+    // Image-to-Text OCR
+    // ----------------------------
+    isolated resource function post imageTranslate(ImageRequest req, http:Caller caller) returns error? {
+        json payload = {
+            "contents": [
+                {
+                    "image": {
+                        "imageBytes": req.base64Image
+                    },
+                    "instructions": "Extract all text from this image."
+                }
+            ]
+        };
+
+        map<string> headers = {
+            "Content-Type": "application/json",
+            "X-goog-api-key": API_key
+        };
+
+        json rawResp = check geminiClient->post(
+            "/v1beta/models/gemini-2.5-image:generateContent",
+            payload,
+            headers
+        );
+
+        log:printInfo("Gemini OCR API response: " + rawResp.toJsonString());
+
+        string result = "";
+        if rawResp is map<json> && rawResp.hasKey("candidates") {
+            json[] candidates = <json[]>rawResp["candidates"];
+            if candidates.length() > 0 {
+                json firstCandidate = candidates[0];
+                if firstCandidate is map<json> && firstCandidate.hasKey("content") {
+                    json content = firstCandidate["content"];
+                    if content is map<json> && content.hasKey("parts") {
+                        json[] parts = <json[]>content["parts"];
+                        if parts.length() > 0 {
+                            json firstPart = parts[0];
+                            if firstPart is map<json> && firstPart["text"] is string {
+                                result = <string>firstPart["text"];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if result == "" {
+            result = "[error: unexpected response] " + rawResp.toJsonString();
+        }
+
+        TranslateResponse respPayload = { output: result.trim() };
+        http:Response res = new;
+        res.setJsonPayload(respPayload.toJson());
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        check caller->respond(res);
+    }
+
+    // ----------------------------
+    // Voice-to-Text Transcription
+    // ----------------------------
+    isolated resource function post voiceTranslate(VoiceRequest req, http:Caller caller) returns error? {
+        json payload = {
+            "audio": {
+                "audioBytes": req.base64Audio
+            },
+            "instructions": string `Transcribe this audio from ${req.sourceLang} to text in ${req.target}`
+        };
+
+        map<string> headers = {
+            "Content-Type": "application/json",
+            "X-goog-api-key": API_key
+        };
+
+        json rawResp = check geminiClient->post(
+            "/v1beta/models/gemini-speech:recognize",
+            payload,
+            headers
+        );
+
+        log:printInfo("Gemini Speech API response: " + rawResp.toJsonString());
+
+        string result = "";
+        if rawResp is map<json> && rawResp.hasKey("candidates") {
+            json[] candidates = <json[]>rawResp["candidates"];
+            if candidates.length() > 0 {
+                json firstCandidate = candidates[0];
+                if firstCandidate is map<json> && firstCandidate.hasKey("content") {
+                    json content = firstCandidate["content"];
+                    if content is map<json> && content.hasKey("parts") {
+                        json[] parts = <json[]>content["parts"];
+                        if parts.length() > 0 {
+                            json firstPart = parts[0];
+                            if firstPart is map<json> && firstPart["text"] is string {
+                                result = <string>firstPart["text"];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if result == "" {
+            result = "[error: unexpected response] " + rawResp.toJsonString();
+        }
+
+        TranslateResponse respPayload = { output: result.trim() };
+        http:Response res = new;
+        res.setJsonPayload(respPayload.toJson());
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        check caller->respond(res);
+    }
+
+    // ----------------------------
+    // Health Check
+    // ----------------------------
     resource function get health(http:Caller caller) returns error? {
         http:Response res = new;
         res.setTextPayload("ok");
