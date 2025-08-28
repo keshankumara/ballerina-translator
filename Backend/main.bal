@@ -32,28 +32,18 @@ type TranslateResponse record {
 };
 
 // ----------------------------
-// Service with CORS configuration
+// Service
 // ----------------------------
-@http:ServiceConfig {
-    cors: {
-        allowOrigins: ["*"],
-        allowCredentials: false,
-        allowHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-        allowMethods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-        maxAge: 84900
-    }
-}
-service / on new http:Listener(8080) {
+service / on new http:Listener(8082) {
 
     // ----------------------------
-    // CORS Preflight - Keep for additional safety
+    // CORS Preflight
     // ----------------------------
     resource function options translate(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-        res.setHeader("Access-Control-Max-Age", "86400");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
         check caller->respond(res);
     }
 
@@ -61,8 +51,7 @@ service / on new http:Listener(8080) {
         http:Response res = new;
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-        res.setHeader("Access-Control-Max-Age", "86400");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
         check caller->respond(res);
     }
 
@@ -70,8 +59,7 @@ service / on new http:Listener(8080) {
         http:Response res = new;
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-        res.setHeader("Access-Control-Max-Age", "86400");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
         check caller->respond(res);
     }
 
