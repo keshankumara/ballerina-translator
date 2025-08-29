@@ -83,7 +83,10 @@ const TranslatorHub = () => {
     setOutputText("");
     try {
       const requestBody = { text: inputText, sourceLang, target: targetLang };
-      const response = await axios.post("http://localhost:8080/translate", requestBody);
+      const response = await axios.post(
+        "http://localhost:8082/translate",
+        requestBody
+      );
       if (response.data && typeof response.data.output === "string") {
         setOutputText(response.data.output);
       } else {
@@ -122,30 +125,30 @@ const TranslatorHub = () => {
             </button>
           </section>
 
-          {/* Controls */}
-          <section className="controls slide-in delay">
-            <div className="select-container">
-              <label>
-                Source:
-                <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
-                  <option value="en">English</option>
-                  <option value="si">Sinhala</option>
-                  <option value="ta">Tamil</option>
-                </select>
-              </label>
-              <label>
-                Target:
-                <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
-                  <option value="en">English</option>
-                  <option value="si">Sinhala</option>
-                  <option value="ta">Tamil</option>
-                </select>
-              </label>
-            </div>
-            <button className="ripple" onClick={handleTranslate} disabled={loading || !inputText.trim()}>
-              {loading ? "Translating..." : "Translate"}
-            </button>
-          </section>
+        {/* Controls */}
+        <div className="controls">
+          <div className="select-container">
+            <label>
+              Source:
+              <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
+                <option value="en">English</option>
+                <option value="si">Sinhala</option>
+                <option value="ta">Tamil</option>
+              </select>
+            </label>
+            <label>
+              Target:
+              <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+                <option value="en">English</option>
+                <option value="si">Sinhala</option>
+                <option value="ta">Tamil</option>
+              </select>
+            </label>
+          </div>
+          <button onClick={handleTranslate} disabled={loading || !inputText.trim()}>
+            {loading ? "Translating..." : "Translate"}
+          </button>
+        </div>
 
           {/* Output */}
           <section className="card output-card fade-in delay">
