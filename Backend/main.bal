@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/log;
 
-configurable string API_key = ?;
+configurable string GEMINI_API_KEY = ?;
 final http:Client geminiClient = check new ("https://generativelanguage.googleapis.com", {
     timeout: 30
 });
@@ -46,7 +46,7 @@ service / on new http:Listener(8080) {
 
         map<string> headers = {
             "Content-Type": "application/json",
-            "X-goog-api-key": API_key
+            "X-goog-api-key": GEMINI_API_KEY
         };
 
         json rawResp = check geminiClient->post(
