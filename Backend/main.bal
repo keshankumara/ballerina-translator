@@ -15,18 +15,6 @@ const string GEMINI_BASE_URL = "https://generativelanguage.googleapis.com";
 const string CORS_ALLOW_ORIGIN = "*";
 const string CORS_ALLOW_METHODS = "POST, GET, OPTIONS";
 const string CORS_ALLOW_HEADERS = "Content-Type";
-const string CONTENT_TYPE_JSON = "application/json";
-
-// Models
-const string GEMINI_FLASH_MODEL = "gemini-2.0-flash";
-const string GEMINI_VISION_MODEL = "gemini-1.5-flash";
-
-// ----------------------------
-// HTTP Client
-// ----------------------------
-final http:Client geminiClient = check new (GEMINI_BASE_URL, {
-    timeout: clientTimeout
-});
 
 // ----------------------------
 // Types
@@ -56,14 +44,6 @@ type ErrorResponse record {|
     string details?;
 |};
 
-type GeminiCandidate record {|
-    json content;
-|};
-
-type GeminiResponse record {|
-    GeminiCandidate[] candidates?;
-|};
-
 // ----------------------------
 // Utility Functions
 // ----------------------------
@@ -84,49 +64,6 @@ isolated function createCorsResponse() returns http:Response {
     http:Response response = new;
     setCorsHeaders(response);
     return response;
-}
-
-# Extracts text from Gemini API response
-#
-# + rawResponse - Raw JSON response from Gemini API
-# + return - Extracted text or error message
-isolated function extractTextFromGeminiResponse(json rawResponse) returns string {
-    if rawResponse is map<json> && rawResponse.hasKey("candidates") {
-        json[] candidates = <json[]>rawResponse["candidates"];
-        if candidates.length() > 0 {
-            json firstCandidate = candidates[0];
-            if firstCandidate is map<json> && firstCandidate.hasKey("content") {
-                json content = firstCandidate["content"];
-                if content is map<json> && content.hasKey("parts") {
-                    json[] parts = <json[]>content["parts"];
-                    if parts.length() > 0 {
-                        json firstPart = parts[0];
-                        if firstPart is map<json> && firstPart["text"] is string {
-                            return <string>firstPart["text"];
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return "[error: unexpected response format] " + rawResponse.toJsonString();
-}
-
-# Detects MIME type from base64 data
-#
-# + base64Data - Base64 encoded image data
-# + return - Detected MIME type
-isolated function detectMimeType(string base64Data) returns string {
-    if base64Data.startsWith("/9j/") {
-        return "image/jpeg";
-    } else if base64Data.startsWith("iVBORw0KGgo") {
-        return "image/png";
-    } else if base64Data.startsWith("R0lGOD") {
-        return "image/gif";
-    } else if base64Data.startsWith("UklGR") {
-        return "image/webp";
-    }
-    return "image/jpeg"; // Default fallback
 }
 
 # Creates success response
@@ -183,7 +120,7 @@ service / on new http:Listener(serverPort) {
     // ----------------------------
     // Text Translation Service
     // ----------------------------
-    isolated resource function post translate(TranslateRequest request) returns http:Response|error {
+    resource function post translate(TranslateRequest request) returns http:Response|error {
         log:printInfo("Processing text translation request");
         
         // Input validation
@@ -191,46 +128,19 @@ service / on new http:Listener(serverPort) {
             return createErrorResponse("Text cannot be empty", statusCode = 400);
         }
         
-        string prompt = string `Translate the following text from ${request.sourceLang} to ${request.target}. Return only the translation without any explanation: "${request.text}"`;
-
-        json payload = {
-            "contents": [{
-                "parts": [{"text": prompt}]
-            }]
-        };
-
-        map<string> headers = {
-            "Content-Type": CONTENT_TYPE_JSON,
-            "X-goog-api-key": API_key
-        };
-
         do {
-            json rawResponse = check geminiClient->post(
-                string `/v1beta/models/${GEMINI_FLASH_MODEL}:generateContent`,
-                payload,
-                headers
-            );
-
-            log:printInfo("Gemini text API response received");
-            string result = extractTextFromGeminiResponse(rawResponse);
-            
-            if result.startsWith("[error:") {
-                log:printError("Gemini API returned unexpected response: " + rawResponse.toJsonString());
-                return createErrorResponse("Translation service error", result);
-            }
-            
+            string result = check translateText(request.text, request.sourceLang, request.target, API_key);
             return createSuccessResponse(result);
-            
         } on fail error e {
-            log:printError("Error calling Gemini API: " + e.message());
-            return createErrorResponse("External API error", e.message());
+            log:printError("Error in translation service: " + e.message());
+            return createErrorResponse("Translation service error", e.message());
         }
     }
 
     // ----------------------------
     // Image OCR Service
     // ----------------------------
-    isolated resource function post imageTranslate(ImageRequest request) returns http:Response|error {
+    resource function post imageTranslate(ImageRequest request) returns http:Response|error {
         log:printInfo("Processing image OCR request");
         
         // Input validation
@@ -238,56 +148,19 @@ service / on new http:Listener(serverPort) {
             return createErrorResponse("Image data cannot be empty", statusCode = 400);
         }
 
-        string mimeType = detectMimeType(request.base64Image);
-        
-        json payload = {
-            "contents": [{
-                "parts": [
-                    {
-                        "text": "Extract all text from this image. Return only the extracted text without any explanation."
-                    },
-                    {
-                        "inline_data": {
-                            "mime_type": mimeType,
-                            "data": request.base64Image
-                        }
-                    }
-                ]
-            }]
-        };
-
-        map<string> headers = {
-            "Content-Type": CONTENT_TYPE_JSON,
-            "X-goog-api-key": API_key
-        };
-
         do {
-            json rawResponse = check geminiClient->post(
-                string `/v1beta/models/${GEMINI_VISION_MODEL}:generateContent`,
-                payload,
-                headers
-            );
-
-            log:printInfo("Gemini OCR API response received");
-            string result = extractTextFromGeminiResponse(rawResponse);
-            
-            if result.startsWith("[error:") {
-                log:printError("Gemini API returned unexpected response: " + rawResponse.toJsonString());
-                return createErrorResponse("OCR service error", result);
-            }
-            
+            string result = check extractTextFromImage(request.base64Image, API_key);
             return createSuccessResponse(result);
-            
         } on fail error e {
-            log:printError("Error calling Gemini OCR API: " + e.message());
-            return createErrorResponse("External API error", e.message());
+            log:printError("Error in OCR service: " + e.message());
+            return createErrorResponse("OCR service error", e.message());
         }
     }
 
     // ----------------------------
     // Voice Transcription Service
     // ----------------------------
-    isolated resource function post voiceTranslate(VoiceRequest request) returns http:Response|error {
+    resource function post voiceTranslate(VoiceRequest request) returns http:Response|error {
         log:printInfo("Processing voice transcription request");
         
         // Input validation
@@ -295,38 +168,12 @@ service / on new http:Listener(serverPort) {
             return createErrorResponse("Audio data cannot be empty", statusCode = 400);
         }
 
-        json payload = {
-            "audio": {
-                "audioBytes": request.base64Audio
-            },
-            "instructions": string `Transcribe this audio from ${request.sourceLang} to text in ${request.target}`
-        };
-
-        map<string> headers = {
-            "Content-Type": CONTENT_TYPE_JSON,
-            "X-goog-api-key": API_key
-        };
-
         do {
-            json rawResponse = check geminiClient->post(
-                "/v1beta/models/gemini-speech:recognize",
-                payload,
-                headers
-            );
-
-            log:printInfo("Gemini Speech API response received");
-            string result = extractTextFromGeminiResponse(rawResponse);
-            
-            if result.startsWith("[error:") {
-                log:printError("Gemini API returned unexpected response: " + rawResponse.toJsonString());
-                return createErrorResponse("Speech recognition service error", result);
-            }
-            
+            string result = check transcribeAndTranslateAudio(request.base64Audio, request.sourceLang, request.target, API_key);
             return createSuccessResponse(result);
-            
         } on fail error e {
-            log:printError("Error calling Gemini Speech API: " + e.message());
-            return createErrorResponse("External API error", e.message());
+            log:printError("Error in speech recognition service: " + e.message());
+            return createErrorResponse("Speech recognition service error", e.message());
         }
     }
 
