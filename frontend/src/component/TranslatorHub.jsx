@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import ReactCountryFlag from "react-country-flag";
 import { supportedLanguages } from "../config/languages.js";
 import "./TranslatorHub.css";
 
@@ -224,16 +225,40 @@ const TranslatorHub = () => {
               <div className="select-container">
                 <label className="lang-label">
                   <span className="lang-icon">🌍</span>
-                  <select
-                    value={sourceLang}
-                    onChange={(e) => setSourceLang(e.target.value)}
-                  >
-                    {supportedLanguages.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="custom-select-wrapper">
+                    <div className="selected-flag-display">
+                      <ReactCountryFlag
+                        countryCode={
+                          supportedLanguages.find(
+                            (lang) => lang.code === sourceLang
+                          )?.countryCode || "US"
+                        }
+                        svg
+                        style={{
+                          width: "24px",
+                          height: "18px",
+                          marginRight: "8px",
+                          borderRadius: "3px",
+                        }}
+                      />
+                      <span className="selected-lang-text">
+                        {supportedLanguages.find(
+                          (lang) => lang.code === sourceLang
+                        )?.name || "English"}
+                      </span>
+                    </div>
+                    <select
+                      value={sourceLang}
+                      onChange={(e) => setSourceLang(e.target.value)}
+                      className="flag-select"
+                    >
+                      {supportedLanguages.map((lang) => (
+                        <option key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </label>
                 <button
                   className="swap-btn ripple"
@@ -244,16 +269,40 @@ const TranslatorHub = () => {
                 </button>
                 <label className="lang-label">
                   <span className="lang-icon">🎯</span>
-                  <select
-                    value={targetLang}
-                    onChange={(e) => setTargetLang(e.target.value)}
-                  >
-                    {supportedLanguages.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="custom-select-wrapper">
+                    <div className="selected-flag-display">
+                      <ReactCountryFlag
+                        countryCode={
+                          supportedLanguages.find(
+                            (lang) => lang.code === targetLang
+                          )?.countryCode || "LK"
+                        }
+                        svg
+                        style={{
+                          width: "24px",
+                          height: "18px",
+                          marginRight: "8px",
+                          borderRadius: "3px",
+                        }}
+                      />
+                      <span className="selected-lang-text">
+                        {supportedLanguages.find(
+                          (lang) => lang.code === targetLang
+                        )?.name || "Sinhala"}
+                      </span>
+                    </div>
+                    <select
+                      value={targetLang}
+                      onChange={(e) => setTargetLang(e.target.value)}
+                      className="flag-select"
+                    >
+                      {supportedLanguages.map((lang) => (
+                        <option key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </label>
               </div>
               <button
