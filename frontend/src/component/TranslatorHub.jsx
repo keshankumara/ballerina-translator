@@ -8,6 +8,7 @@ const TranslatorHub = () => {
   const [inputText, setInputText] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   const [sourceLang, setSourceLang] = useState("en");
   const [targetLang, setTargetLang] = useState("si");
@@ -119,6 +120,23 @@ const TranslatorHub = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    processImageFile(file);
+  };
+
+  // Process image file (common function for upload and drag & drop)
+  const processImageFile = async (file) => {
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setImageError("Please select a valid image file.");
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setImageError("File size must be less than 10MB.");
+      return;
+    }
+
     setImageLoading(true);
     setImageError("");
     try {
@@ -166,6 +184,39 @@ const TranslatorHub = () => {
     }
   };
 
+  // Drag and Drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone completely
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      const file = files[0];
+      processImageFile(file);
+    }
+  };
+
   return (
     <div className="translator-wrapper">
       <canvas id="background-canvas"></canvas>
@@ -198,26 +249,56 @@ const TranslatorHub = () => {
             </section>
 
             {/* Image to Text Block */}
-            <section className="card image-card slide-in">
-              <label className="section-label">Image to Text</label>
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={handleImageUpload}
-              />
-              <button
-                className="ripple image-btn"
-                onClick={() =>
-                  fileInputRef.current && fileInputRef.current.click()
-                }
-                disabled={imageLoading}
-              >
-                {imageLoading ? "Extracting..." : "📷 Upload Image"}
-              </button>
-              {imageError && <p className="error">{imageError}</p>}
-              <p className="image-hint">Upload an image to extract text.</p>
+            <section
+              className={`card image-card slide-in ${
+                isDragging ? "drag-over" : ""
+              }`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <label className="section-label">📷 Image to Text</label>
+              <div className="drop-zone">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  onChange={handleImageUpload}
+                />
+
+                <div className="drop-zone-content">
+                  {isDragging ? (
+                    <div className="drop-indicator">
+                      <div className="drop-icon">📁</div>
+                      <p>Drop your image here!</p>
+                    </div>
+                  ) : (
+                    <div className="upload-options">
+                      <div className="drag-drop-text">
+                        <div className="upload-icon">🖼️</div>
+                        <p>Drag & drop an image here</p>
+                        <span className="or-text">or</span>
+                      </div>
+                      <button
+                        className="ripple image-btn"
+                        onClick={() =>
+                          fileInputRef.current && fileInputRef.current.click()
+                        }
+                        disabled={imageLoading}
+                      >
+                        {imageLoading ? "Extracting..." : "📷 Browse Files"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {imageError && <p className="error">{imageError}</p>}
+                <p className="image-hint">
+                  Supports JPG, PNG, GIF, WebP • Max size: 10MB
+                </p>
+              </div>
             </section>
           </div>
 
