@@ -14,6 +14,7 @@ A high-performance translation service built with Ballerina that integrates with
 ## API Endpoints
 
 ### Text Translation
+
 ```
 POST /translate
 Content-Type: application/json
@@ -26,6 +27,7 @@ Content-Type: application/json
 ```
 
 ### Image OCR
+
 ```
 POST /imageTranslate
 Content-Type: application/json
@@ -36,6 +38,7 @@ Content-Type: application/json
 ```
 
 ### Voice Transcription
+
 ```
 POST /voiceTranslate
 Content-Type: application/json
@@ -48,6 +51,7 @@ Content-Type: application/json
 ```
 
 ### Health Check
+
 ```
 GET /health
 ```
@@ -101,6 +105,7 @@ All endpoints return structured error responses:
 ```
 
 Common HTTP status codes:
+
 - `200`: Success
 - `400`: Bad Request (validation errors)
 - `500`: Internal Server Error (API errors)
