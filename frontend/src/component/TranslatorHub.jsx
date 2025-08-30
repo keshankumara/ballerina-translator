@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { supportedLanguages } from "../config/languages.js";
 import "./TranslatorHub.css";
 
 const TranslatorHub = () => {
@@ -210,37 +211,47 @@ const TranslatorHub = () => {
           </div>
 
           {/* Controls */}
-          <div className="controls">
-            <div className="select-container">
-              <label>
-                Source:
-                <select
-                  value={sourceLang}
-                  onChange={(e) => setSourceLang(e.target.value)}
-                >
-                  <option value="en">English</option>
-                  <option value="si">Sinhala</option>
-                  <option value="ta">Tamil</option>
-                </select>
-              </label>
-              <label>
-                Target:
-                <select
-                  value={targetLang}
-                  onChange={(e) => setTargetLang(e.target.value)}
-                >
-                  <option value="en">English</option>
-                  <option value="si">Sinhala</option>
-                  <option value="ta">Tamil</option>
-                </select>
-              </label>
+          <div className="controls-card card slide-in">
+            <label className="section-label">⚙️ Translation Settings</label>
+            <div className="controls">
+              <div className="select-container">
+                <label className="lang-label">
+                  <span className="lang-icon">🌍</span>
+                  Source:
+                  <select
+                    value={sourceLang}
+                    onChange={(e) => setSourceLang(e.target.value)}
+                  >
+                    <option value="en">English</option>
+                    <option value="si">Sinhala</option>
+                    <option value="ta">Tamil</option>
+                  </select>
+                </label>
+                <div className="arrow-container">
+                  <span className="translation-arrow">➡️</span>
+                </div>
+                <label className="lang-label">
+                  <span className="lang-icon">🎯</span>
+                  Target:
+                  <select
+                    value={targetLang}
+                    onChange={(e) => setTargetLang(e.target.value)}
+                  >
+                    <option value="en">English</option>
+                    <option value="si">Sinhala</option>
+                    <option value="ta">Tamil</option>
+                  </select>
+                </label>
+              </div>
+              <button
+                className="translate-btn ripple"
+                onClick={handleTranslate}
+                disabled={loading || !inputText.trim()}
+              >
+                <span className="btn-icon">🔄</span>
+                {loading ? "Translating..." : "Translate"}
+              </button>
             </div>
-            <button
-              onClick={handleTranslate}
-              disabled={loading || !inputText.trim()}
-            >
-              {loading ? "Translating..." : "Translate"}
-            </button>
           </div>
 
           {/* Output */}
