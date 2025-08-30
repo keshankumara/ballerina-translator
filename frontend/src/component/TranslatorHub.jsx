@@ -107,6 +107,13 @@ const TranslatorHub = () => {
     setLoading(false);
   };
 
+  // Swap source and target languages
+  const handleSwapLanguages = () => {
+    const temp = sourceLang;
+    setSourceLang(targetLang);
+    setTargetLang(temp);
+  };
+
   // Image to Text
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -217,29 +224,35 @@ const TranslatorHub = () => {
               <div className="select-container">
                 <label className="lang-label">
                   <span className="lang-icon">🌍</span>
-                  Source:
                   <select
                     value={sourceLang}
                     onChange={(e) => setSourceLang(e.target.value)}
                   >
-                    <option value="en">English</option>
-                    <option value="si">Sinhala</option>
-                    <option value="ta">Tamil</option>
+                    {supportedLanguages.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.flag} {lang.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
-                <div className="arrow-container">
-                  <span className="translation-arrow">➡️</span>
-                </div>
+                <button
+                  className="swap-btn ripple"
+                  onClick={handleSwapLanguages}
+                  title="Swap languages"
+                >
+                  ⇄
+                </button>
                 <label className="lang-label">
                   <span className="lang-icon">🎯</span>
-                  Target:
                   <select
                     value={targetLang}
                     onChange={(e) => setTargetLang(e.target.value)}
                   >
-                    <option value="en">English</option>
-                    <option value="si">Sinhala</option>
-                    <option value="ta">Tamil</option>
+                    {supportedLanguages.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.flag} {lang.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>
