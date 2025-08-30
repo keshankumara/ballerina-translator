@@ -240,9 +240,9 @@ cd frontend
 npm run build
 ```
 
-# screenshots
+## screenshots
 
-![dashboard](screnshots/dashboard.png)
+![dashboard](screenshots\dashboard.png)
 
 ## 🐛 Troubleshooting
 
