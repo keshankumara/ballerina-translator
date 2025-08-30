@@ -79,7 +79,7 @@ service / on new http:Listener(8082) {
 
         map<string> headers = {
             "Content-Type": "application/json",
-            "X-goog-api-key": GEMINI_API_KEY
+            "X-goog-api-key": API_key
         };
 
         json rawResp = check geminiClient->post(
@@ -125,13 +125,35 @@ service / on new http:Listener(8082) {
     // Image-to-Text OCR
     // ----------------------------
     isolated resource function post imageTranslate(ImageRequest req, http:Caller caller) returns error? {
+        // Detect mime type from base64 data or default to jpeg
+        string mimeType = "image/jpeg";
+        string base64Data = req.base64Image;
+        
+        // Simple mime type detection based on base64 header
+        if (base64Data.startsWith("/9j/")) {
+            mimeType = "image/jpeg";
+        } else if (base64Data.startsWith("iVBORw0KGgo")) {
+            mimeType = "image/png";
+        } else if (base64Data.startsWith("R0lGOD")) {
+            mimeType = "image/gif";
+        } else if (base64Data.startsWith("UklGR")) {
+            mimeType = "image/webp";
+        }
+
         json payload = {
             "contents": [
                 {
-                    "image": {
-                        "imageBytes": req.base64Image
-                    },
-                    "instructions": "Extract all text from this image."
+                    "parts": [
+                        {
+                            "text": "Extract all text from this image. Return only the extracted text without any explanation."
+                        },
+                        {
+                            "inline_data": {
+                                "mime_type": mimeType,
+                                "data": base64Data
+                            }
+                        }
+                    ]
                 }
             ]
         };
@@ -142,7 +164,7 @@ service / on new http:Listener(8082) {
         };
 
         json rawResp = check geminiClient->post(
-            "/v1beta/models/gemini-2.5-image:generateContent",
+            "/v1beta/models/gemini-1.5-flash:generateContent",
             payload,
             headers
         );
