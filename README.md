@@ -242,7 +242,7 @@ npm run build
 
 ## screenshots
 
-![dashboard](screenshots\dashboard.png)
+![dashboard](screenshots/dashboard.png)
 
 ## 🐛 Troubleshooting
 
