@@ -101,9 +101,36 @@ html {
   margin-bottom: 20px;
 }
 
+/* Header with logo styles */
+.header-with-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.app-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+  animation: logoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+  from {
+    filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+  }
+  to {
+    filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.8));
+  }
+}
+
 .title-glow {
   color: #00ffff;
   text-shadow: 0 0 2px #00ffff, 0 0 2px #00ffff;
+  margin: 0; /* Remove default margin since we're handling spacing in parent */
 }
 
 .card {

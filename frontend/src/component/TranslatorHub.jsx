@@ -171,7 +171,10 @@ const TranslatorHub = () => {
       <canvas id="background-canvas"></canvas>
 
       <div className="translator-page">
-        <h1 className="title-glow">🌐 Translator Hub</h1>
+        <div className="header-with-logo">
+          <img src="/globe-logo.svg" alt="Globe Logo" className="app-logo" />
+          <h1 className="title-glow">Translator Hub</h1>
+        </div>
 
         <main className="translator-main">
           <div className="input-blocks">
