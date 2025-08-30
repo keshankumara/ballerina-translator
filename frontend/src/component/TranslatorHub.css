@@ -1,7 +1,52 @@
-body, html {
+/* Input blocks layout */
+.input-blocks {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  justify-content: center;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .input-blocks {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+}
+
+/* Image card styles */
+.image-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
+  min-width: 280px;
+  flex: 1 1 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.image-btn {
+  margin-top: 12px;
+  background: #00ffff;
+  color: #0d0d0d;
+}
+
+.image-hint {
+  font-size: 0.95rem;
+  color: #aaa;
+  margin-top: 8px;
+  text-align: center;
+}
+body,
+html {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #0d0d0d;
   color: #f0f0f0;
   overflow-x: hidden;
@@ -143,17 +188,21 @@ button.ripple::after {
   height: 100%;
   top: 0;
   left: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 10%,
+    transparent 10.01%
+  );
   background-repeat: no-repeat;
   background-position: 50%;
-  transform: scale(10,10);
+  transform: scale(10, 10);
   opacity: 0;
   transition: transform 0.5s, opacity 1s;
 }
 
 button.ripple:active::after {
-  transform: scale(0,0);
-  opacity: .3;
+  transform: scale(0, 0);
+  opacity: 0.3;
   transition: 0s;
 }
 
@@ -178,13 +227,25 @@ button.ripple:active::after {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .fade-in {
