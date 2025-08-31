@@ -224,7 +224,7 @@ const TranslatorHub = () => {
       <div className="translator-page">
         <div className="header-with-logo">
           <img src="/globe-logo.svg" alt="Globe Logo" className="app-logo" />
-          <h1 className="title-glow">Translator Hub</h1>
+          <h1 className="title-glow">Ballerina Translator</h1>
         </div>
 
         <main className="translator-main">
